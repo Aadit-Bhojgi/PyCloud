@@ -220,27 +220,27 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         self.battery_status.setText(self.html_format_1 + result[2] + self.html_format_2)
         self.battery_status.text = self.doc.toHtml()
 
-    def download_photos(self):
+    def is_unique(self):
         if not self.thread_download.isRunning() and not self.thread_delete.isRunning() \
                 and not self.thread_lost.isRunning() and not self.thread_locate.isRunning() \
                 and not self.thread_play.isRunning():
+            return 1
+        else:
+            return 0
+
+    def download_photos(self):
+        if self.is_unique():
             self.sanity = sanityCheck.Sanity(self.name)
             self.sanity.check()
             self.show_result.show()
-            self.download.move(680, 340)
-            self.download_label.move(740, 350)
-            self.delete_button.move(680, 420)
-            self.delete_label.move(740, 430)
-            self.show_result.clear()
+            self.move_labels()
             self.show_result.setText('Downloading Photos Please Wait.')
             self.thread_download = PhotosThread(self.api)
             self.thread_download.alert.connect(self.photo_result)
             self.thread_download.start()
 
     def delete_photos(self):
-        if not self.thread_download.isRunning() and not self.thread_delete.isRunning() \
-                and not self.thread_lost.isRunning() and not self.thread_locate.isRunning() \
-                and not self.thread_play.isRunning():
+        if self.is_unique():
             self.sanity = sanityCheck.Sanity(self.name)
             self.sanity.check()
             folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
@@ -254,15 +254,18 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
                 delete_selected.append(str(selected[0][i]))
             if len(delete_selected) > 0:
                 self.show_result.show()
-                self.download.move(680, 340)
-                self.download_label.move(740, 350)
-                self.delete_button.move(680, 420)
-                self.delete_label.move(740, 430)
-                self.show_result.clear()
+                self.move_labels()
                 self.show_result.setText('Deleting Photos Please Wait.')
                 self.thread_delete = DeleteThread(self.username, self.password, delete_selected)
                 self.thread_delete.alert.connect(self.photo_result)
                 self.thread_delete.start()
+
+    def move_labels(self):
+        self.download.move(680, 340)
+        self.download_label.move(740, 350)
+        self.delete_button.move(680, 420)
+        self.delete_label.move(740, 430)
+        self.show_result.clear()
 
     def clear_text(self):
         self.show_result.clear()
@@ -288,17 +291,13 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
             self.show_result.setText(result)
 
     def alert(self):
-        if not self.thread_download.isRunning() and not self.thread_delete.isRunning() \
-                and not self.thread_lost.isRunning() and not self.thread_locate.isRunning() \
-                and not self.thread_play.isRunning():
+        if self.is_unique():
             self.thread_lost = LostThread(self.api, str(self.lost_phonne.text()), str(self.lost_message.toPlainText()))
             self.thread_lost.alert.connect(self.final_play_lost)
             self.thread_lost.start()
 
     def playing(self):
-        if not self.thread_download.isRunning() and not self.thread_delete.isRunning() \
-                and not self.thread_lost.isRunning() and not self.thread_locate.isRunning() \
-                and not self.thread_play.isRunning():
+        if self.is_unique():
             self.thread_play = AlertThread(self.api)
             self.thread_play.alert.connect(self.final_play_lost)
             self.thread_play.start()
@@ -307,9 +306,7 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         message_alert(alert, 'info')
 
     def locate(self):
-        if not self.thread_download.isRunning() and not self.thread_delete.isRunning() \
-                and not self.thread_lost.isRunning() and not self.thread_locate.isRunning() \
-                and not self.thread_play.isRunning():
+        if self.is_unique():
             self.thread_locate.alert.connect(self.map_open)
             self.thread_locate.start()
 
