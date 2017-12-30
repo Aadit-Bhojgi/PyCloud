@@ -19,6 +19,29 @@ from pyicloud import PyiCloudService, exceptions
 user = user_password = ''
 
 
+def message_alert(data, alert):
+    msg = QtGui.QMessageBox()
+    msg.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
+    msg.setText(data)
+    if alert == 'exit':
+        msg.setIcon(QtGui.QMessageBox.Warning)
+        msg.addButton(QtGui.QMessageBox.Ok)
+        msg.addButton(QtGui.QMessageBox.Cancel)
+    if alert == 'info':
+        msg.setIcon(QtGui.QMessageBox.Information)
+        msg.addButton(QtGui.QMessageBox.Ok)
+    if alert == 'action':
+        msg.setIcon(QtGui.QMessageBox.Information)
+        msg.addButton(QtGui.QMessageBox.Ok)
+        msg.addButton(QtGui.QMessageBox.Cancel)
+    msg.setDefaultButton(QtGui.QMessageBox.Ok)
+    result = msg.exec_()
+    if result == msg.Ok:
+        return 1
+    else:
+        return 0
+
+
 class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -62,15 +85,8 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
                 print result
 
     def closeEvent(self, event):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-        msgBox.setText('Do you want to Exit?')
-        msgBox.setIcon(QtGui.QMessageBox.Warning)
-        msgBox.addButton(QtGui.QMessageBox.Ok)
-        msgBox.addButton(QtGui.QMessageBox.Cancel)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        ret = msgBox.exec_()
-        if ret == msgBox.Ok:
+        result = message_alert('Do you want to Exit?', 'exit')
+        if result:
             event.accept()
             # This nested if has very import aspect in this code
             if self.thread.isRunning():
@@ -169,29 +185,17 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
     def automate(self):
         # Saving username and password (ciphered)
         if os.path.exists(self.path + '/Automation/Credentials/Credentials.txt'):
-            msgBox = QtGui.QMessageBox()
-            msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-            msgBox.setText('Do you want to over-write the previously saved credentials?\n'
-                           'NOTE : This may affect your already set automation\n(If credentials will not be the same)')
-            msgBox.setIcon(QtGui.QMessageBox.Information)
-            msgBox.addButton(QtGui.QMessageBox.Ok)
-            msgBox.addButton(QtGui.QMessageBox.Cancel)
-            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-            res = msgBox.exec_()
-            if res == msgBox.Ok:
+            result = message_alert('Do you want to over-write the previously saved credentials?\n'
+                                   'NOTE : This may affect your already set automation\n(If credentials'
+                                   ' will not be the same)', 'action')
+
+            if result:
                 self.credentials()
                 QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
         else:
-            msgBox = QtGui.QMessageBox()
-            msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-            msgBox.setText('By pressing OK your credentials for the logged in Apple ID will be saved (Ciphered)'
-                           ' in this system.\nDo you want to continue?')
-            msgBox.setIcon(QtGui.QMessageBox.Information)
-            msgBox.addButton(QtGui.QMessageBox.Ok)
-            msgBox.addButton(QtGui.QMessageBox.Cancel)
-            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-            res = msgBox.exec_()
-            if res == msgBox.Ok:
+            result = message_alert('By pressing OK your credentials for the logged in Apple ID will be saved (Ciphered)'
+                                   ' in this system.\nDo you want to continue?', 'action')
+            if result:
                 os.makedirs(os.path.join(self.path, 'Automation\Credentials'))
                 self.credentials()
                 QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
@@ -273,24 +277,12 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         if result == 'error':
             self.clear_text()
         elif result == 'finished_downloading':
-            msgBox = QtGui.QMessageBox()
-            msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-            msgBox.setText('Photo(s) Downloaded')
-            msgBox.setIcon(QtGui.QMessageBox.Information)
-            msgBox.addButton(QtGui.QMessageBox.Ok)
-            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-            ret = msgBox.exec_()
-            if ret == msgBox.Ok:
+            ret = message_alert('Photo(s) Downloaded', 'info')
+            if ret:
                 self.clear_text()
         elif result == 'finished_deleting':
-            msgBox = QtGui.QMessageBox()
-            msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-            msgBox.setText('Photo(s) Deleted')
-            msgBox.setIcon(QtGui.QMessageBox.Information)
-            msgBox.addButton(QtGui.QMessageBox.Ok)
-            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-            ret = msgBox.exec_()
-            if ret == msgBox.Ok:
+            ret = message_alert('Photo(s) Deleted', 'info')
+            if ret:
                 self.clear_text()
         else:
             self.show_result.setText(result)
@@ -312,13 +304,7 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
             self.thread_play.start()
 
     def final_play_lost(self, alert):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-        msgBox.setText(alert)
-        msgBox.setIcon(QtGui.QMessageBox.Information)
-        msgBox.addButton(QtGui.QMessageBox.Ok)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        msgBox.exec_()
+        message_alert(alert, 'info')
 
     def locate(self):
         if not self.thread_download.isRunning() and not self.thread_delete.isRunning() \
@@ -331,15 +317,8 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         print result
 
     def closeEvent(self, event):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
-        msgBox.setText('Do you want to Exit?')
-        msgBox.setIcon(QtGui.QMessageBox.Warning)
-        msgBox.addButton(QtGui.QMessageBox.Ok)
-        msgBox.addButton(QtGui.QMessageBox.Cancel)
-        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-        ret = msgBox.exec_()
-        if ret == msgBox.Ok:
+        result = message_alert('Do you want to Exit?', 'exit')
+        if result:
             self.timer.stop()
             event.accept()
             exit(0)
@@ -423,12 +402,12 @@ class LocateThread(QThread):
         try:
             latitude = str(self.api.iphone.location()['latitude'])
             longitude = str(self.api.iphone.location()['longitude'])
-            win32api.MessageBox(0, 'Important\nPress CTRL+W in order to exit further', 'PyCloud - Message',
-                                0x00000000L + 0x00000040L + 0x00020000L)
-            self.locate_phone = Broswer.Locate(latitude, longitude)
-            self.locate_phone.locate_phone()
-            result = latitude + ' ' + longitude
-            self.alert.emit(result)
+            if win32api.MessageBox(0, 'Important\nPress CTRL+W in order to exit further', 'PyCloud - Message',
+                                   0x00000001L + 0x00000040L + 0x00020000L) == 1:
+                self.locate_phone = Broswer.Locate(latitude, longitude)
+                self.locate_phone.locate_phone()
+                result = latitude + ' ' + longitude
+                self.alert.emit(result)
         except ConnectionError:
             win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
                                 0x00000000L + 0x00000010L + 0x00020000L)
