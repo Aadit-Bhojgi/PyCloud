@@ -56,7 +56,7 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         self.battery = ''
 
     def instruction(self):
-        self.dialog.hide()
+        self.dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         self.dialog.show()
 
     def populate(self):
@@ -76,11 +76,9 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
                 phone_name = str(self.api.iphone).split(':')[0].strip()
                 battery = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
                 self.login = PyLogin(self.api, user_name, phone_name, battery)
-                self.login.hide()
-                self.login.show()
                 form.hide()
-                if self.dialog.isVisible():
-                    self.dialog.reject()
+                self.login.setWindowModality(QtCore.Qt.ApplicationModal)
+                self.login.show()
             else:
                 print result
 
@@ -88,16 +86,8 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         result = message_alert('Do you want to Exit?', 'exit')
         if result:
             event.accept()
-            # This nested if has very import aspect in this code
             if self.thread.isRunning():
                 self.thread.terminate()
-            if self.dialog.isVisible():
-                self.dialog.reject()
-            try:
-                if isinstance(self.login, PyLogin):
-                    self.login.reject()
-            except AttributeError:
-                pass
         else:
             event.ignore()
 
@@ -201,10 +191,11 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
                 QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
 
     def back(self):
-        form.hide()
-        if form.isMinimized():
-            form.showNormal()
-        form.show()
+        result = message_alert('Current session will be lost\nDo you want to go back?', 'exit')
+        if result:
+            self.hide()
+            form.setWindowModality(QtCore.Qt.ApplicationModal)
+            form.show()
 
     def updating(self):
         if not self.thread_update.isRunning():
@@ -318,7 +309,6 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         if result:
             self.timer.stop()
             event.accept()
-            exit(0)
         else:
             event.ignore()
 
