@@ -135,7 +135,7 @@ class Cmd:
                                                                                       self.today[0],
                                                                                       self.time)
 
-        self.send_mail(self.username, str(self.today[2]), calendar.month_abbr[int(self.today[1])], str(self.today[0]))
+        # self.send_mail(self.username, str(self.today[2]), calendar.month_abbr[int(self.today[1])], str(self.today[0]))
         # Saving application Log to a text file
         log_file = open(self.path + '/' + user_name + '/AppData/AppLog.txt', 'a+')
         log_file.writelines(self.message + '--------------------------------------------------------------\n')
