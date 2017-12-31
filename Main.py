@@ -72,10 +72,7 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         if form.isVisible():
             if isinstance(result, Auth.PyiCloudService):
                 self.api = result
-                user_name = str(self.api.iphone).split(":")[1].strip()
-                phone_name = str(self.api.iphone).split(':')[0].strip()
-                battery = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
-                self.login = PyLogin(self.api, user_name, phone_name, battery)
+                self.login = PyLogin(self.api)
                 form.hide()
                 self.login.setWindowModality(QtCore.Qt.ApplicationModal)
                 self.login.show()
@@ -118,12 +115,15 @@ class PyInst(QtGui.QDialog, Instruction.Ui_Dialog):
 
 
 class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
-    def __init__(self, api, user_name='', phone_name='', battery=''):
+    def __init__(self, api):
         super(self.__class__, self).__init__()
         self.setupUi(self)
         self.show_result.hide()
         self.doc = QtGui.QTextDocument()
         self.api = api
+        user_name = str(self.api.iphone).split(":")[1].strip()
+        phone_name = str(self.api.iphone).split(':')[0].strip()
+        battery = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
         self.html_format_1 = '<html><head/><body><p><span style=" color:#ececec; font-size:25px">'
         self.html_format_2 = '</span></p></body></html>'
         self.user_name.setText(self.html_format_1 + user_name + self.html_format_2)
