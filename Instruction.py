@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'Instruction.ui'
 #
-# Created: Sat Oct 21 22:54:04 2017
-#      by: PyQt4 UI code generator 4.10.4
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -33,7 +32,8 @@ class Ui_Dialog(object):
         Dialog.setMinimumSize(QtCore.QSize(870, 793))
         Dialog.setMaximumSize(QtCore.QSize(870, 793))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/AppleLogo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/Graphics/Icon/PyCloud-icon.png")), QtGui.QIcon.Normal,
+                       QtGui.QIcon.Off)
         Dialog.setWindowIcon(icon)
         self.label = QtGui.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(0, 0, 871, 801))
@@ -150,9 +150,9 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "PyCloud - Instructions", None))
         self.label.setText(
             _translate("Dialog", "<html><head/><body><p><img src=\":/Images/bg.png\"/></p></body></html>", None))
-        self.label_2.setText(
-            _translate("Dialog", "<html><head/><body><p><img src=\":/Images/Instruction.png\"/></p></body></html>",
-                       None))
+        self.label_2.setText(_translate("Dialog",
+                                        "<html><head/><body><p><img src=\":/Images/Graphics/GUI Images/screen.png\"/></p></body></html>",
+                                        None))
         self.label_4.setText(_translate("Dialog",
                                         "<html><head/><body><p><span style=\" color:#f7f9fb;font-size:18pt; font-weight:600;\">Before you begin</span></p></body></html>",
                                         None))

@@ -21,7 +21,8 @@ user = user_password = ''
 
 def message_alert(data, alert):
     msg = QtGui.QMessageBox()
-    msg.setWindowIcon(QtGui.QIcon(":/Images/AppleLogo.png"))
+    msg.setWindowIcon(QtGui.QIcon(":/Images/Graphics/Icon/PyCloud-icon.png"))
+    msg.setWindowTitle('PyCloud - Message')
     msg.setText(data)
     if alert == 'exit':
         msg.setIcon(QtGui.QMessageBox.Warning)
@@ -112,7 +113,7 @@ class PyInst(QtGui.QDialog, Instruction.Ui_Dialog):
         self.label_13.setOpenExternalLinks(True)
 
 
-class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
+class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
     def __init__(self, api):
         super(self.__class__, self).__init__()
         self.setupUi(self)
@@ -153,8 +154,7 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         self.thread_download = PhotosThread(self.api)
         self.show_result.setReadOnly(True)
         self.automation.clicked.connect(self.automate)
-        # To check the Path of the script
-        self.path = os.getcwd() # script directory
+        self.path = os.getcwd()  # script directory
         self.name = user_name.strip()
 
     def credentials(self):
@@ -253,20 +253,15 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
                     self.thread_delete.start()
 
     def move_labels(self):
-        self.download.move(680, 340)
-        self.download_label.move(740, 350)
-        self.delete_button.move(680, 420)
-        self.delete_label.move(740, 430)
+        self.download.move(700, 360)
+        self.delete_button.move(700, 440)
         self.show_result.clear()
 
     def clear_text(self):
         self.show_result.clear()
         self.show_result.hide()
-        self.download.move(230, 400)
-        self.download_label.move(290, 410)
-        self.delete_button.move(540, 400)
-        self.delete_button.move(540, 400)
-        self.delete_label.move(590, 410)
+        self.download.move(180, 400)
+        self.delete_button.move(570, 400)
 
     def photo_result(self, result):
         if result == 'error':
@@ -284,7 +279,7 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
 
     def alert(self):
         if self.is_unique():
-            self.thread_lost = LostThread(self.api, str(self.lost_phonne.text()), str(self.lost_message.toPlainText()))
+            self.thread_lost = LostThread(self.api, str(self.lost_phonee.text()), str(self.lost_message.toPlainText()))
             self.thread_lost.alert.connect(self.final_play_lost)
             self.thread_lost.start()
 
@@ -538,6 +533,7 @@ class PhotosThread(QThread):
             for photo in api.photos.all:
                 if photo.filename not in self.list_images:
                     download = photo.download()
+                    print photo.created
                     info = str(photo.created).split()[0].split('-')
                     year = str(info[0])
                     month = calendar.month_name[int(info[1])]

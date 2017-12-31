@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'GUI.ui'
 #
-# Created: Sat Oct 21 01:50:54 2017
-#      by: PyQt4 UI code generator 4.10.4
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -33,14 +32,23 @@ class Ui_Pycloud(object):
         Pycloud.setMinimumSize(QtCore.QSize(863, 560))
         Pycloud.setMaximumSize(QtCore.QSize(863, 560))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/AppleLogo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/Graphics/Icon/PyCloud-icon.png")), QtGui.QIcon.Normal,
+                       QtGui.QIcon.Off)
         Pycloud.setWindowIcon(icon)
         self.label = QtGui.QLabel(Pycloud)
-        self.label.setGeometry(QtCore.QRect(-8, -5, 881, 571))
+        self.label.setGeometry(QtCore.QRect(-10, 0, 881, 571))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Yu Gothic UI"))
+        font.setPointSize(18)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label.setFont(font)
         self.label.setObjectName(_fromUtf8("label"))
         self.commandLinkButton = QtGui.QCommandLinkButton(Pycloud)
         self.commandLinkButton.setGeometry(QtCore.QRect(770, 300, 51, 51))
-        self.commandLinkButton.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.commandLinkButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.commandLinkButton.setMouseTracking(True)
+        self.commandLinkButton.setFocusPolicy(QtCore.Qt.TabFocus)
         self.commandLinkButton.setText(_fromUtf8(""))
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/log-in-button-with-arrow.png")), QtGui.QIcon.Normal,
@@ -56,6 +64,8 @@ class Ui_Pycloud(object):
         font.setBold(True)
         font.setWeight(75)
         self.username.setFont(font)
+        self.username.setMouseTracking(False)
+        self.username.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.username.setStyleSheet(_fromUtf8("color: #b9b9b9;"))
         self.username.setObjectName(_fromUtf8("username"))
         self.password = QtGui.QLineEdit(Pycloud)
@@ -87,30 +97,29 @@ class Ui_Pycloud(object):
         self.label_4.setFont(font)
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.commandLinkButton_2 = QtGui.QCommandLinkButton(Pycloud)
-        self.commandLinkButton_2.setGeometry(QtCore.QRect(300, 480, 41, 41))
+        self.commandLinkButton_2.setGeometry(QtCore.QRect(110, 480, 231, 61))
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Segoe UI"))
+        font.setPointSize(18)
+        font.setBold(True)
+        font.setWeight(75)
+        self.commandLinkButton_2.setFont(font)
+        self.commandLinkButton_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.commandLinkButton_2.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.commandLinkButton_2.setText(_fromUtf8(""))
+        self.commandLinkButton_2.setStyleSheet(_fromUtf8("color: #ececec;"))
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/instruction-logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.commandLinkButton_2.setIcon(icon2)
-        self.commandLinkButton_2.setIconSize(QtCore.QSize(30, 30))
+        self.commandLinkButton_2.setIconSize(QtCore.QSize(40, 40))
         self.commandLinkButton_2.setObjectName(_fromUtf8("commandLinkButton_2"))
-        self.label_5 = QtGui.QLabel(Pycloud)
-        self.label_5.setGeometry(QtCore.QRect(120, 470, 181, 51))
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Yu Gothic UI Semibold"))
-        font.setPointSize(6)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_5.setFont(font)
-        self.label_5.setObjectName(_fromUtf8("label_5"))
         self.label_2 = QtGui.QLabel(Pycloud)
-        self.label_2.setGeometry(QtCore.QRect(50, 20, 391, 381))
+        self.label_2.setGeometry(QtCore.QRect(-40, -40, 431, 441))
         self.label_2.setStyleSheet(_fromUtf8("image: url(:/logo/AppleLogo.png);"))
         self.label_2.setObjectName(_fromUtf8("label_2"))
 
         self.retranslateUi(Pycloud)
         QtCore.QMetaObject.connectSlotsByName(Pycloud)
+        Pycloud.setTabOrder(self.username, self.password)
 
     def retranslateUi(self, Pycloud):
         Pycloud.setWindowTitle(_translate("Pycloud", "PyCloud", None))
@@ -128,12 +137,10 @@ class Ui_Pycloud(object):
                                         "<html><head/><body><p><span style=\" font-size:45pt; color:#f7f9fb;\">PyCloud</span></p></body></html>",
                                         None))
         self.commandLinkButton_2.setToolTip(_translate("Pycloud", "Go To Instructions", None))
-        self.label_5.setText(_translate("Pycloud",
-                                        "<html><head/><body><p><span style=\" color:#f7f9fb;font-size:20pt; font-weight:600;\">Instructions</span></p></body></html>",
+        self.commandLinkButton_2.setText(_translate("Pycloud", "Instructions", None))
+        self.label_2.setText(_translate("Pycloud",
+                                        "<html><head/><body><p><img src=\":/Images/Graphics/Icon/PyCloud.png\"/></p></body></html>",
                                         None))
-        self.label_2.setText(
-            _translate("Pycloud", "<html><head/><body><p><img src=\":/Images/logo_main.png\"/></p></body></html>",
-                       None))
 
 
 import PyCloudResource
