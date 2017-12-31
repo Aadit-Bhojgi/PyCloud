@@ -52,7 +52,6 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         self.dialog = PyInst()
         self.thread = GetThread()
         self.api = Auth.PyiCloudService
-        self.login = PyMain
         self.battery = ''
 
     def instruction(self):
@@ -74,7 +73,6 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
                 self.api = result
                 self.login = PyLogin(self.api)
                 form.hide()
-                self.login.setWindowModality(QtCore.Qt.ApplicationModal)
                 self.login.show()
             else:
                 print result
@@ -118,6 +116,7 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
     def __init__(self, api):
         super(self.__class__, self).__init__()
         self.setupUi(self)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.show_result.hide()
         self.doc = QtGui.QTextDocument()
         self.api = api
@@ -155,7 +154,7 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
         self.show_result.setReadOnly(True)
         self.automation.clicked.connect(self.automate)
         # To check the Path of the script
-        self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
+        self.path = os.getcwd() # script directory
         self.name = user_name.strip()
 
     def credentials(self):
@@ -423,7 +422,7 @@ class DeleteThread(QThread):
                 self.delete_selected[i.split('\\')[-1].strip("'")] = i
             self.api = PyiCloudService(str(self.username), str(self.password))  # For checking the Internet Connection
             self.folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
-            self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
+            self.path = os.getcwd()  # script directory
             self.load = PhotosThread(self.api)
             self.load.loading_data(self.folder)
             self.count = self.load.count
@@ -517,7 +516,7 @@ class PhotosThread(QThread):
         self.list_year, self.list_month, self.list_images, self.count = [], [], [], 0
         self.message = self.time = self.today = self.phone = ''
         # To check the Path of the script
-        self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
+        self.path = os.getcwd()  # script directory
 
     def loading_data(self, folder):
         # Reading input data
