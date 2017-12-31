@@ -243,12 +243,14 @@ class PyLogin(QtGui.QDialog, LogIn.Ui_PyLogin):
             for i in range(0, len(selected[0])):
                 delete_selected.append(str(selected[0][i]))
             if len(delete_selected) > 0:
-                self.show_result.show()
-                self.move_labels()
-                self.show_result.setText('Deleting Photos Please Wait.')
-                self.thread_delete = DeleteThread(self.username, self.password, delete_selected)
-                self.thread_delete.alert.connect(self.photo_result)
-                self.thread_delete.start()
+                result = message_alert('Selected file(s) will be deleted\nDo you want to Continue?', 'exit')
+                if result:
+                    self.show_result.show()
+                    self.move_labels()
+                    self.show_result.setText('Deleting Photos Please Wait.')
+                    self.thread_delete = DeleteThread(self.username, self.password, delete_selected)
+                    self.thread_delete.alert.connect(self.photo_result)
+                    self.thread_delete.start()
 
     def move_labels(self):
         self.download.move(680, 340)
