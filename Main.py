@@ -611,7 +611,6 @@ def main():
     app = QtGui.QApplication(sys.argv)
     global form
     form = PyMain()
-    # form.setWindowFlags(form.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
     form.show()
     app.exec_()
 
