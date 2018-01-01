@@ -8,7 +8,6 @@ dummy.py
 Reading-Input.py
 convert(.py-.ui).py
 convert(.py-.qrc).py
-PyCloud.png
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
