@@ -1,5 +1,2 @@
 # PyCloud
-
-# hii
-#	okay
-<img src="PyCloud.png" alt="Image">
+<img src="Images/PyCloud.png" alt="Image">
