@@ -6,7 +6,8 @@ GUIs/
 Project/
 dummy.py
 Reading-Input.py
-Bonus-file.py
+convert(.py-.ui).py
+convert(.py-.qrc).py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
