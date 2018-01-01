@@ -15,6 +15,7 @@ import calendar
 import datetime
 from requests.exceptions import ConnectionError
 from pyicloud import PyiCloudService, exceptions
+from dateutil.tz import *
 
 user = user_password = ''
 
@@ -48,6 +49,7 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         super(self.__class__, self).__init__()
         self.setupUi(self)
         self.password.setEchoMode(QtGui.QLineEdit.Password)
+        self.commandLinkButton.setAutoDefault(True)
         self.commandLinkButton.clicked.connect(self.populate)
         self.commandLinkButton_2.clicked.connect(self.instruction)
         self.dialog = PyInst()
@@ -132,30 +134,42 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
         self.phone_name.text = self.doc.toHtml()
         self.battery_status.setText(self.html_format_1 + battery + self.html_format_2)
         self.battery_status.text = self.doc.toHtml()
+        self.goback.setAutoDefault(True)
         self.goback.clicked.connect(self.back)
         self.thread_play = AlertThread(self.api)
         self.thread_update = UpdateThread(self.api)
         self.thread_lost = LostThread(self.api)
         self.thread_locate = LocateThread(self.api)
+        self.play_sound.setAutoDefault(True)
         self.play_sound.clicked.connect(self.playing)
         global user, user_password
         self.username = str(user)
         self.password = str(user_password)
-        self.download.clicked.connect(self.download_photos)
         self.timer = QtCore.QTimer(self)  # Timer to update user info
         self.timer.timeout.connect(self.updating)
         self.timer.start(10)  # 10 milliseconds
+        self.lost.setAutoDefault(True)
         self.lost.clicked.connect(self.alert)
+        self.map.setAutoDefault(True)
         self.map.clicked.connect(self.locate)
         self.locate_phone = Broswer.Locate()
         self.thread_delete = DeleteThread(self.username, self.password)
+        self.delete_button.setAutoDefault(True)
         self.delete_button.clicked.connect(self.delete_photos)
+        self.download.setAutoDefault(True)
         self.download.clicked.connect(self.download_photos)
         self.thread_download = PhotosThread(self.api)
         self.show_result.setReadOnly(True)
+        self.automation.setAutoDefault(True)
         self.automation.clicked.connect(self.automate)
         self.path = os.getcwd()  # script directory
         self.name = user_name.strip()
+        self.cancel_download.hide()
+        self.cancel_deletion.hide()
+        self.cancel_deletion.setAutoDefault(True)
+        self.cancel_download.setAutoDefault(True)
+        self.cancel_download.clicked.connect(self.stop_download)
+        self.cancel_deletion.clicked.connect(self.stop_delete)
 
     def credentials(self):
         a = open(self.path + '\Automation\Credentials\Credentials.txt', 'w+')
@@ -223,45 +237,65 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
             self.sanity = sanityCheck.Sanity(self.name)
             self.sanity.check()
             self.show_result.show()
-            self.move_labels()
+            self.move_labels('download')
             self.show_result.setText('Downloading Photos Please Wait.')
             self.thread_download = PhotosThread(self.api)
             self.thread_download.alert.connect(self.photo_result)
             self.thread_download.start()
 
-    def delete_photos(self):
-        if self.is_unique():
-            self.sanity = sanityCheck.Sanity(self.name)
-            self.sanity.check()
-            folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
-            path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
-            filter = "Photos and Videos (*.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
-            selected = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, "Select Photos",
-                                                                   path + '/' + folder + '/Photos',
-                                                                   filter)
-            delete_selected = []
-            for i in range(0, len(selected[0])):
-                delete_selected.append(str(selected[0][i]))
-            if len(delete_selected) > 0:
-                result = message_alert('Selected file(s) will be deleted\nDo you want to Continue?', 'exit')
-                if result:
-                    self.show_result.show()
-                    self.move_labels()
-                    self.show_result.setText('Deleting Photos Please Wait.')
-                    self.thread_delete = DeleteThread(self.username, self.password, delete_selected)
-                    self.thread_delete.alert.connect(self.photo_result)
-                    self.thread_delete.start()
+    def stop_download(self):
+        self.thread_download.flag = False
 
-    def move_labels(self):
-        self.download.move(700, 360)
-        self.delete_button.move(700, 440)
+    def delete_photos(self):
+        try:
+            if self.is_unique():
+                self.sanity = sanityCheck.Sanity(self.name)
+                self.sanity.check()
+                folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
+                path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
+                filter = "Photos and Videos (*.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
+                selected = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, "Select Photos",
+                                                                       path + '/' + folder + '/Photos',
+                                                                       filter)
+                delete_selected = []
+                for i in range(0, len(selected[0])):
+                    delete_selected.append(str(selected[0][i]))
+                if len(delete_selected) > 0:
+                    result = message_alert('Selected file(s) will be deleted\nDo you want to Continue?', 'exit')
+                    if result:
+                        self.show_result.show()
+                        self.move_labels('delete')
+                        self.show_result.setText('Deleting Photos Please Wait.')
+                        self.thread_delete = DeleteThread(self.username, self.password, delete_selected)
+                        self.thread_delete.alert.connect(self.photo_result)
+                        self.thread_delete.start()
+        except ConnectionError, exceptions.PyiCloudAPIResponseError:
+            win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
+                                0x00000000L + 0x00000010L + 0x00020000L)
+
+    def stop_delete(self):
+        self.thread_delete.flag_stop = False
+
+    def move_labels(self, command):
+        if command == 'download':
+            self.download.move(700, 360)
+            self.cancel_download.show()
+            self.delete_button.hide()
+        if command == 'delete':
+            self.delete_button.move(700, 360)
+            self.cancel_deletion.show()
+            self.download.hide()
         self.show_result.clear()
 
     def clear_text(self):
         self.show_result.clear()
         self.show_result.hide()
+        self.cancel_download.hide()
+        self.cancel_deletion.hide()
         self.download.move(180, 400)
         self.delete_button.move(570, 400)
+        self.delete_button.show()
+        self.download.show()
 
     def photo_result(self, result):
         if result == 'error':
@@ -272,6 +306,14 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
                 self.clear_text()
         elif result == 'finished_deleting':
             ret = message_alert('Photo(s) Deleted', 'info')
+            if ret:
+                self.clear_text()
+        elif result == 'downloading_cancelled':
+            ret = message_alert('Downloading cancelled.', 'info')
+            if ret:
+                self.clear_text()
+        elif result == 'deletion_cancelled':
+            ret = message_alert('Deletion cancelled.', 'info')
             if ret:
                 self.clear_text()
         else:
@@ -412,6 +454,7 @@ class DeleteThread(QThread):
         self.warning = False
         self.result = ''
         self.count = 0
+        self.flag_stop = True
 
     def delete(self):
         try:
@@ -424,47 +467,51 @@ class DeleteThread(QThread):
             self.load.loading_data(self.folder)
             self.count = self.load.count
             for photo in self.delete_selected.keys():
-                self.flag = False
-                for lib_photo in self.api.photos.all:
-                    if lib_photo.filename == photo:
-                        lib_photo.delete()
-                        if os.path.exists(self.delete_selected[photo]):
+                if self.flag_stop:
+                    self.flag = False
+                    for lib_photo in self.api.photos.all:
+                        if lib_photo.filename == photo:
+                            lib_photo.delete()
+                            if os.path.exists(self.delete_selected[photo]):
+                                os.remove(self.delete_selected[photo])
+                            self.result += photo + ' deleted\n'
+                            self.alert.emit(self.result)
+                            self.load.list_images.remove(photo)
+                            self.load.count -= 1
+                            self.count = self.load.count
+                            for empty_folder in self.load.list_month:
+                                temp = empty_folder
+                                year = empty_folder.split('_')[1]
+                                month = empty_folder.split('_')[0]
+                                if not os.listdir(self.path + '/' + self.folder + '/Photos/' + year + '/' + month):
+                                    os.rmdir(self.path + '/' + self.folder + '/Photos/' + year + '/' + month)
+                                    self.load.list_month.remove(temp)
+                            for empty_folder in self.load.list_year:
+                                if not os.listdir(self.path + '/' + self.folder + '/Photos/' + empty_folder):
+                                    os.rmdir(self.path + '/' + self.folder + '/Photos/' + empty_folder)
+                                    self.load.list_year.remove(empty_folder)
+                            with open(self.path + '/' + self.folder + '/AppData/AppData.dat', "wb") as f:
+                                pickle.dump(self.load.list_year, f)
+                                pickle.dump(self.load.list_month, f)
+                                pickle.dump(self.load.list_images, f)
+                                pickle.dump(self.load.count, f)
+                                f.close()
+                            self.flag = True
+                            break
+                    if self.flag is False:
+                        if self.warning is False:
+                            if win32api.MessageBox(0, 'Photo(s) selected is/are not present in your\niCloud Photo '
+                                                      'Library.\nDo you really want to delete these photos from your'
+                                                      ' system?', 'PyCloud - Message',
+                                                   0x00000001L + 0x00000010L + 0x00020000L) == 1:
+                                self.warning = True
+                        if os.path.exists(self.delete_selected[photo]) and self.warning is True:
                             os.remove(self.delete_selected[photo])
-                        self.load.list_images.remove(photo)
-                        self.load.count -= 1
-                        self.count = self.load.count
-                        for empty_folder in self.load.list_month:
-                            temp = empty_folder
-                            year = empty_folder.split('_')[1]
-                            month = empty_folder.split('_')[0]
-                            if not os.listdir(self.path + '/' + self.folder + '/Photos/' + year + '/' + month):
-                                os.rmdir(self.path + '/' + self.folder + '/Photos/' + year + '/' + month)
-                                self.load.list_month.remove(temp)
-                        for empty_folder in self.load.list_year:
-                            if not os.listdir(self.path + '/' + self.folder + '/Photos/' + empty_folder):
-                                os.rmdir(self.path + '/' + self.folder + '/Photos/' + empty_folder)
-                                self.load.list_year.remove(empty_folder)
-                        with open(self.path + '/' + self.folder + '/AppData/AppData.dat', "wb") as f:
-                            pickle.dump(self.load.list_year, f)
-                            pickle.dump(self.load.list_month, f)
-                            pickle.dump(self.load.list_images, f)
-                            pickle.dump(self.load.count, f)
-                            f.close()
-                        self.result += photo + ' deleted\n'
-                        self.alert.emit(self.result)
-                        self.flag = True
-                        break
-                if self.flag is False:
-                    if self.warning is False:
-                        if win32api.MessageBox(0, 'Photo(s) selected is/are not present in your\niCloud Photo Library.'
-                                                  '\nDo you really want to delete these photos from your system?',
-                                               'PyCloud - Message', 0x00000001L + 0x00000010L + 0x00020000L) == 1:
-                            self.warning = True
-                    if os.path.exists(self.delete_selected[photo]) and self.warning is True:
-                        os.remove(self.delete_selected[photo])
-                        self.count -= 1
-                        self.result += photo + ' deleted\n'
-                        self.alert.emit(self.result)
+                            self.count -= 1
+                            self.result += photo + ' deleted\n'
+                            self.alert.emit(self.result)
+                else:
+                    break
         except ConnectionError, exceptions.PyiCloudAPIResponseError:
             win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
                                 0x00000000L + 0x00000010L + 0x00020000L)
@@ -501,7 +548,10 @@ class DeleteThread(QThread):
     def run(self):
         self.delete()
         self.saving_data(self.api, self.folder)
-        self.alert.emit('finished_deleting')
+        if self.flag_stop:
+            self.alert.emit('finished_deleting')
+        else:
+            self.alert.emit('deletion_cancelled')
 
 
 class PhotosThread(QThread):
@@ -514,6 +564,7 @@ class PhotosThread(QThread):
         self.message = self.time = self.today = self.phone = ''
         # To check the Path of the script
         self.path = os.getcwd()  # script directory
+        self.flag = True
 
     def loading_data(self, folder):
         # Reading input data
@@ -531,36 +582,38 @@ class PhotosThread(QThread):
         try:
             # Downloading All Photos from user's iCloud account.
             for photo in api.photos.all:
-                if photo.filename not in self.list_images:
-                    download = photo.download()
-                    print photo.created
-                    info = str(photo.created).split()[0].split('-')
-                    year = str(info[0])
-                    month = calendar.month_name[int(info[1])]
-                    if year not in self.list_year:
-                        os.makedirs(os.path.join(self.path + '/' + folder + '/Photos', year))
-                        self.list_year.append(year)
-                    if (month + '_' + year) not in self.list_month:
-                        os.makedirs(os.path.join(self.path + '/' + folder + '/Photos', year, month))
-                        self.list_month.append((month + '_' + year))
-                    self.list_images.append(photo.filename)
-                    with open(self.path + '/' + folder + '/Photos/{}/{}/{}'.format(year, month,
-                                                                                   photo.filename),
-                              'wb') as opened_file:
-                        opened_file.write(download.raw.read())
-                        opened_file.close()
-                    self.message += '{} downloaded, Date of creation: {} {}, {}\n'.format(photo.filename, info[2],
-                                                                                          calendar.month_abbr[
-                                                                                              int(info[1])],
-                                                                                          info[0])
-                    self.alert.emit(self.message)
-                    self.count += 1
-                    with open(self.path + '/' + folder + '/AppData/AppData.dat', "wb") as f:
-                        pickle.dump(self.list_year, f)
-                        pickle.dump(self.list_month, f)
-                        pickle.dump(self.list_images, f)
-                        pickle.dump(self.count, f)
-                        f.close()
+                if self.flag:
+                    if photo.filename not in self.list_images:
+                        download = photo.download()
+                        info = str(photo.created).split()[0].split('-')
+                        self.message += '{} downloaded, Date of creation: {} {}, {}\n'.format(photo.filename, info[2],
+                                                                                              calendar.month_abbr[
+                                                                                                  int(info[1])],
+                                                                                              info[0])
+                        self.alert.emit(self.message)
+                        year = str(info[0])
+                        month = calendar.month_name[int(info[1])]
+                        if year not in self.list_year:
+                            os.makedirs(os.path.join(self.path + '/' + folder + '/Photos', year))
+                            self.list_year.append(year)
+                        if (month + '_' + year) not in self.list_month:
+                            os.makedirs(os.path.join(self.path + '/' + folder + '/Photos', year, month))
+                            self.list_month.append((month + '_' + year))
+                        self.list_images.append(photo.filename)
+                        with open(self.path + '/' + folder + '/Photos/{}/{}/{}'.format(year, month,
+                                                                                       photo.filename),
+                                  'wb') as opened_file:
+                            opened_file.write(download.raw.read())
+                            opened_file.close()
+                        self.count += 1
+                        with open(self.path + '/' + folder + '/AppData/AppData.dat', "wb") as f:
+                            pickle.dump(self.list_year, f)
+                            pickle.dump(self.list_month, f)
+                            pickle.dump(self.list_images, f)
+                            pickle.dump(self.count, f)
+                            f.close()
+                else:
+                    break
         except ConnectionError:
             error = 'Internet is not working.\nPlease try again.'
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
@@ -599,7 +652,10 @@ class PhotosThread(QThread):
 
     def run(self):
         self.download()
-        self.result = 'finished_downloading'
+        if self.flag:
+            self.result = 'finished_downloading'
+        else:
+            self.result = 'downloading_cancelled'
         self.alert.emit(self.result)
 
 
