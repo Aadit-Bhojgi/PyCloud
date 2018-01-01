@@ -48,7 +48,7 @@ class Ui_Pycloud(object):
         self.commandLinkButton.setGeometry(QtCore.QRect(770, 300, 51, 51))
         self.commandLinkButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.commandLinkButton.setMouseTracking(True)
-        self.commandLinkButton.setFocusPolicy(QtCore.Qt.TabFocus)
+        self.commandLinkButton.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.commandLinkButton.setText(_fromUtf8(""))
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/log-in-button-with-arrow.png")), QtGui.QIcon.Normal,
@@ -97,15 +97,16 @@ class Ui_Pycloud(object):
         self.label_4.setFont(font)
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.commandLinkButton_2 = QtGui.QCommandLinkButton(Pycloud)
-        self.commandLinkButton_2.setGeometry(QtCore.QRect(110, 480, 231, 61))
+        self.commandLinkButton_2.setGeometry(QtCore.QRect(120, 480, 211, 61))
         font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Segoe UI"))
-        font.setPointSize(18)
+        font.setFamily(_fromUtf8("Yu Gothic UI"))
+        font.setPointSize(16)
         font.setBold(True)
         font.setWeight(75)
         self.commandLinkButton_2.setFont(font)
         self.commandLinkButton_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.commandLinkButton_2.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.commandLinkButton_2.setToolTip(_fromUtf8(""))
         self.commandLinkButton_2.setStyleSheet(_fromUtf8("color: #ececec;"))
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/Images/instruction-logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -136,7 +137,6 @@ class Ui_Pycloud(object):
         self.label_4.setText(_translate("Pycloud",
                                         "<html><head/><body><p><span style=\" font-size:45pt; color:#f7f9fb;\">PyCloud</span></p></body></html>",
                                         None))
-        self.commandLinkButton_2.setToolTip(_translate("Pycloud", "Go To Instructions", None))
         self.commandLinkButton_2.setText(_translate("Pycloud", "Instructions", None))
         self.label_2.setText(_translate("Pycloud",
                                         "<html><head/><body><p><img src=\":/Images/Graphics/Icon/PyCloud.png\"/></p></body></html>",
