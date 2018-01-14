@@ -15,7 +15,6 @@ import calendar
 import datetime
 from requests.exceptions import ConnectionError
 from pyicloud import PyiCloudService, exceptions
-from dateutil.tz import *
 
 user = user_password = ''
 
