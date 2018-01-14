@@ -28,10 +28,10 @@ def message_alert(data, alert):
         msg.setIcon(QtGui.QMessageBox.Warning)
         msg.addButton(QtGui.QMessageBox.Ok)
         msg.addButton(QtGui.QMessageBox.Cancel)
-    if alert == 'info':
+    elif alert == 'info':
         msg.setIcon(QtGui.QMessageBox.Information)
         msg.addButton(QtGui.QMessageBox.Ok)
-    if alert == 'action':
+    elif alert == 'action':
         msg.setIcon(QtGui.QMessageBox.Information)
         msg.addButton(QtGui.QMessageBox.Ok)
         msg.addButton(QtGui.QMessageBox.Cancel)
