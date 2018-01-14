@@ -333,7 +333,7 @@ class Ui_PyLogin(object):
         self.cancel_download.setIconSize(QtCore.QSize(40, 40))
         self.cancel_download.setObjectName(_fromUtf8("cancel_download"))
         self.cancel_deletion = QtGui.QCommandLinkButton(PyLogin)
-        self.cancel_deletion.setGeometry(QtCore.QRect(700, 530, 291, 61))
+        self.cancel_deletion.setGeometry(QtCore.QRect(700, 440, 291, 61))
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("Segoe UI"))
         font.setPointSize(16)
@@ -427,7 +427,7 @@ class Ui_PyLogin(object):
                                             "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#626065;\"><br /></span></p></body></html>",
                                             None))
         self.download.setText(_translate("PyLogin", "Download Photos", None))
-        self.delete_button.setText(_translate("PyLogin", "  Delete Photos", None))
+        self.delete_button.setText(_translate("PyLogin", "   Delete Photos", None))
         self.label_10.setText(_translate("PyLogin",
                                          "<html><head/><body><p><span style=\" font-size:17pt; color:#f7f9fb;\">Message :</span></p></body></html>",
                                          None))
