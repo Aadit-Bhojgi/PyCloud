@@ -2,7 +2,6 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import *
 import sys
 import os
-import inspect
 import win32api
 import Auth
 import sanityCheck
@@ -251,7 +250,7 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
                 self.sanity = sanityCheck.Sanity(self.name)
                 self.sanity.check()
                 folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
-                path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
+                path = os.getcwd()  # script directory
                 filter = "Photos and Videos (*.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
                 selected = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, "Select Photos",
                                                                        path + '/' + folder + '/Photos',
