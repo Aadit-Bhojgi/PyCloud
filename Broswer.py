@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class DeletePhotos:
+"""class DeletePhotos:
     def __init__(self, username, password):
         self.username = str(username)
         self.password = str(password)
@@ -22,7 +22,7 @@ class DeletePhotos:
         action_chains.ActionChains(browser).send_keys(keys.Keys.TAB, self.password, keys.Keys.ENTER).perform()
         browser.get('https://www.icloud.com/#photos')
         WebDriverWait(browser, 60).until(expected_conditions.frame_to_be_available_and_switch_to_it("photos"))
-        WebDriverWait(browser, True)
+        WebDriverWait(browser, True)"""
 
 
 class Locate:
