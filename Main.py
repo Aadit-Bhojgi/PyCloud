@@ -184,22 +184,23 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
         a.close()
 
     def automate(self):
-        # Saving username and password (ciphered)
-        if os.path.exists(self.path + '/Automation/Credentials/Credentials.txt'):
-            result = message_alert('Do you want to over-write the previously saved credentials?\n'
-                                   'NOTE : This may affect your already set automation\n(If credentials'
-                                   ' will not be the same)', 'action')
+        if self.is_unique():
+            # Saving username and password (ciphered)
+            if os.path.exists(self.path + '/Automation/Credentials/Credentials.txt'):
+                result = message_alert('Do you want to over-write the previously saved credentials?\n'
+                                       'NOTE : This may affect your already set automation\n(If credentials'
+                                       ' will not be the same)', 'action')
 
-            if result:
-                self.credentials()
-                QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
-        else:
-            result = message_alert('By pressing OK your credentials for the logged in Apple ID will be saved (Ciphered)'
-                                   ' in this system.\nDo you want to continue?', 'action')
-            if result:
-                os.makedirs(os.path.join(self.path, 'Automation\Credentials'))
-                self.credentials()
-                QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
+                if result:
+                    self.credentials()
+                    QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
+            else:
+                result = message_alert('By pressing OK your credentials for the logged in Apple ID will be saved (Ciphered)'
+                                       ' in this system.\nDo you want to continue?', 'action')
+                if result:
+                    os.makedirs(os.path.join(self.path, 'Automation\Credentials'))
+                    self.credentials()
+                    QtGui.QDesktopServices.openUrl(QtCore.QUrl('Downloader.bat'))
 
     def back(self):
         result = message_alert('Current session will be lost\nDo you want to go back?', 'exit')
