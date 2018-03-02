@@ -4,6 +4,7 @@ import win32api
 from pyicloud import *
 from pyicloud.exceptions import PyiCloudAPIResponseError, PyiCloudFailedLoginException
 from requests.exceptions import ConnectionError
+from pyicloud import exceptions
 
 
 class Auth:
@@ -20,16 +21,17 @@ class Auth:
         try:
             # Authentication
             api = PyiCloudService(self.username, self.password)
-            error = ' Dear' + str(api.devices[0]).split(':')[1] + ', you are Authenticated.\n Press Ok to continue'
-            if win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000001L + 0x00000040L + 0x00020000L) == 1:
-                return api
-            else:
-                return 'Exit'
+            devices = api.devices
+            return api, devices
 
         except PyiCloudAPIResponseError:
             raise PyiCloudFailedLoginException
         except PyiCloudFailedLoginException:
             error = 'Invalid email/password combination.\nPlease try again.'
+            win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
+            return error
+        except exceptions.PyiCloudNoDevicesException:
+            error = "Enable 'Find My iPhone' on your Device\nand then try again."
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
             return error
         except ConnectionError:

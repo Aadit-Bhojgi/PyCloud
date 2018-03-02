@@ -4,6 +4,8 @@ import sys
 import os
 import win32api
 import Auth
+import Auth2f
+import devices
 import sanityCheck
 import GUI
 import Instruction
@@ -41,6 +43,15 @@ def message_alert(data, alert):
     else:
         return 0
 
+class Devices(QtGui.QWidget, devices.Ui_get_device):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self.setupUi(self)
+
+class Auth2f(QtGui.QWidget, Auth2f.Ui_Verify):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        self.setupUi(self)
 
 class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
     def __init__(self):
@@ -51,7 +62,9 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         self.commandLinkButton.clicked.connect(self.populate)
         self.commandLinkButton_2.clicked.connect(self.instruction)
         self.dialog = PyInst()
+        self.auth2f = Auth2f()
         self.thread = GetThread()
+        self.device = Devices()
         self.api = Auth.PyiCloudService
         self.battery = ''
 
@@ -70,13 +83,68 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
 
     def handle_auth_result(self, result):
         if form.isVisible():
-            if isinstance(result, Auth.PyiCloudService):
-                self.api = result
-                self.login = PyLogin(self.api)
-                form.hide()
-                self.login.show()
+            self.result = result
+            if isinstance(self.result[0], Auth.PyiCloudService):
+                if self.result[0].requires_2sa:
+                    self.auth2f.otp.clear()
+                    self.auth2f.warning_send.hide()
+                    self.auth2f.warning_verify.hide()
+                    self.auth2f.number_combo.setCurrentIndex(0)
+                    self.auth2f.setWindowModality(QtCore.Qt.ApplicationModal)
+                    self.auth2f.show()
+                    self.devices = self.result[0].trusted_devices
+                    self.auth2f.number_combo.addItem('Number')
+                    self.auth2f.number_combo.setMaxCount(len(self.devices) + 1)
+                    self.auth2f.number_combo.model().item(0).setEnabled(False)
+                    for device in enumerate(self.devices):
+                        dev = str(device[1]['phoneNumber'])
+                        self.auth2f.number_combo.addItem(dev)
+                    self.auth2f.number_combo.currentIndexChanged.connect(self.send_code)
+                else:
+                    self.Choose_Device()
             else:
                 print result
+
+    def send_code(self):
+        self.auth2f.warning_verify.hide()
+        index = self.auth2f.number_combo.currentIndex()-1
+        self.auth_dev = self.devices[index]
+        if self.result[0].send_verification_code(self.auth_dev):
+            self.auth2f.send_otp.clicked.connect(self.verify_code)
+        else:
+            self.auth2f.warning_send.show()
+            self.auth2f.number_combo.setCurrentIndex(0)
+
+    def set_dev(self):
+        self.devic = self.device.comboBox.currentIndex()-1
+        self.device.comboBox.setCurrentIndex(0)
+        self.device.hide()
+        self.auth2f.hide()
+        self.api = self.result[0]
+        self.login = PyLogin(self.api, self.devic)
+        form.hide()
+        self.login.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.login.show()
+
+    def verify_code(self):
+        self.auth2f.warning_send.hide()
+        self.code = int(self.auth2f.otp.text())
+        if self.result[0].validate_verification_code(self.auth_dev, self.code):
+            self.Choose_Device()
+        else:
+            self.auth2f.warning_verify.show()
+
+    def Choose_Device(self):
+        dev = ''
+        self.device.comboBox.addItem('Devices')
+        self.device.comboBox.setMaxCount(len(list(self.result[1])) + 1)
+        self.device.comboBox.model().item(0).setEnabled(False)
+        for i in range(0, len(list(self.result[1]))):
+            dev = str(self.result[1][i])
+            self.device.comboBox.addItem(dev)
+        self.device.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.device.show()
+        self.device.comboBox.currentIndexChanged.connect(self.set_dev)
 
     def closeEvent(self, event):
         result = message_alert('Do you want to Exit?', 'exit')
@@ -114,16 +182,17 @@ class PyInst(QtGui.QDialog, Instruction.Ui_Dialog):
 
 
 class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
-    def __init__(self, api):
+    def __init__(self, api, dev):
         super(self.__class__, self).__init__()
         self.setupUi(self)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.show_result.hide()
         self.doc = QtGui.QTextDocument()
         self.api = api
-        user_name = str(self.api.iphone).split(":")[1].strip()
-        phone_name = str(self.api.iphone).split(':')[0].strip()
-        battery = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
+        self.dev = dev
+        user_name = str(self.api.devices[self.dev]).split(":")[1].strip()
+        phone_name = str(self.api.devices[self.dev]).split(':')[0].strip()
+        battery = str(round(self.api.devices[self.dev].status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
         self.html_format_1 = '<html><head/><body><p><span style=" color:#ececec; font-size:25px">'
         self.html_format_2 = '</span></p></body></html>'
         self.user_name.setText(self.html_format_1 + user_name + self.html_format_2)
@@ -134,10 +203,10 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
         self.battery_status.text = self.doc.toHtml()
         self.goback.setAutoDefault(True)
         self.goback.clicked.connect(self.back)
-        self.thread_play = AlertThread(self.api)
-        self.thread_update = UpdateThread(self.api)
-        self.thread_lost = LostThread(self.api)
-        self.thread_locate = LocateThread(self.api)
+        self.thread_play = AlertThread(self.api, self.dev)
+        self.thread_update = UpdateThread(self.api, self.dev)
+        self.thread_lost = LostThread(self.api, self.dev)
+        self.thread_locate = LocateThread(self.api, self.dev)
         self.play_sound.setAutoDefault(True)
         self.play_sound.clicked.connect(self.playing)
         global user, user_password
@@ -151,12 +220,12 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
         self.map.setAutoDefault(True)
         self.map.clicked.connect(self.locate)
         self.locate_phone = Broswer.Locate()
-        self.thread_delete = DeleteThread(self.username, self.password)
+        self.thread_delete = DeleteThread(self.api, self.dev, self.username, self.password)
         self.delete_button.setAutoDefault(True)
         self.delete_button.clicked.connect(self.delete_photos)
         self.download.setAutoDefault(True)
         self.download.clicked.connect(self.download_photos)
-        self.thread_download = PhotosThread(self.api)
+        self.thread_download = PhotosThread(self.dev, self.api)
         self.show_result.setReadOnly(True)
         self.automation.setAutoDefault(True)
         self.automation.clicked.connect(self.automate)
@@ -238,7 +307,7 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
             self.show_result.show()
             self.move_labels('download')
             self.show_result.setText('Downloading Photos Please Wait.')
-            self.thread_download = PhotosThread(self.api)
+            self.thread_download = PhotosThread(self.dev, self.api)
             self.thread_download.alert.connect(self.photo_result)
             self.thread_download.start()
 
@@ -250,9 +319,9 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
             if self.is_unique():
                 self.sanity = sanityCheck.Sanity(self.name)
                 self.sanity.check()
-                folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
+                folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
                 path = os.getcwd()  # script directory
-                filter = "Photos and Videos (*.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
+                filter = "Photos and Videos (*.HEIC *.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
                 selected = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, "Select Photos",
                                                                        path + '/' + folder + '/Photos',
                                                                        filter)
@@ -265,7 +334,8 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
                         self.show_result.show()
                         self.move_labels('delete')
                         self.show_result.setText('Deleting Photos Please Wait.')
-                        self.thread_delete = DeleteThread(self.username, self.password, delete_selected)
+                        self.thread_delete = DeleteThread(self.api, self.dev, self.username, self.password,
+                                                          delete_selected)
                         self.thread_delete.alert.connect(self.photo_result)
                         self.thread_delete.start()
         except ConnectionError, exceptions.PyiCloudAPIResponseError:
@@ -320,13 +390,14 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
 
     def alert(self):
         if self.is_unique():
-            self.thread_lost = LostThread(self.api, str(self.lost_phonee.text()), str(self.lost_message.toPlainText()))
+            self.thread_lost = LostThread(self.api, self.dev, str(self.lost_phonee.text()),
+                                          str(self.lost_message.toPlainText()))
             self.thread_lost.alert.connect(self.final_play_lost)
             self.thread_lost.start()
 
     def playing(self):
         if self.is_unique():
-            self.thread_play = AlertThread(self.api)
+            self.thread_play = AlertThread(self.api, self.dev)
             self.thread_play.alert.connect(self.final_play_lost)
             self.thread_play.start()
 
@@ -353,15 +424,16 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
 class UpdateThread(QThread):
     updateResult = QtCore.pyqtSignal(object)
 
-    def __init__(self, api):
+    def __init__(self, api, dev):
         QThread.__init__(self)
         self.api = api
+        self.dev = dev
 
     def update(self):
         try:
-            user_name = str(self.api.iphone).split(":")[1]
-            phone_name = str(self.api.iphone).split(":")[0]
-            battery_status = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
+            user_name = str(self.api.devices[self.dev]).split(":")[1]
+            phone_name = str(self.api.devices[self.dev]).split(":")[0]
+            battery_status = str(round(self.api.devices[self.dev].status()['batteryLevel'], 2) * 100).split('.')[0] + '%'
             result = user_name + ':' + phone_name + ':' + battery_status
             self.updateResult.emit(result)
         except ConnectionError:
@@ -374,15 +446,16 @@ class UpdateThread(QThread):
 class AlertThread(QThread):
     alert = QtCore.pyqtSignal(object)
 
-    def __init__(self, api):
+    def __init__(self, api, dev):
         QThread.__init__(self)
         self.api = api
+        self.dev = dev
 
     def play(self):
         try:
-            battery = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[
+            battery = str(round(self.api.devices[self.dev].status()['batteryLevel'], 2) * 100).split('.')[
                           0] + '%'  # For checking the Internet Connection
-            self.api.iphone.play_sound()
+            self.api.devices[self.dev].play_sound()
             self.alert.emit('Alert sent on your iPhone.')
         except ConnectionError:
             win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
@@ -395,17 +468,18 @@ class AlertThread(QThread):
 class LostThread(QThread):
     alert = QtCore.pyqtSignal(object)
 
-    def __init__(self, api, phone='none', message='none'):
+    def __init__(self, api, dev, phone='none', message='none'):
         QThread.__init__(self)
         self.api = api
+        self.dev = dev
         self.phone = phone
         self.message = message
 
     def play(self):
         try:
-            battery = str(round(self.api.iphone.status()['batteryLevel'], 2) * 100).split('.')[
+            battery = str(round(self.api.devices[self.dev].status()['batteryLevel'], 2) * 100).split('.')[
                           0] + '%'  # For checking the Internet Connection
-            self.api.iphone.lost_device(self.phone, self.message)
+            self.api.devices[self.dev].lost_device(self.phone, self.message)
             self.alert.emit('Lost message sent to your iPhone.\nReader may contact you soon.')
         except ConnectionError:
             win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
@@ -418,14 +492,15 @@ class LostThread(QThread):
 class LocateThread(QThread):
     alert = QtCore.pyqtSignal(object)
 
-    def __init__(self, api):
+    def __init__(self, api, dev):
         QThread.__init__(self)
         self.api = api
+        self.dev = dev
 
     def play(self):
         try:
-            latitude = str(self.api.iphone.location()['latitude'])
-            longitude = str(self.api.iphone.location()['longitude'])
+            latitude = str(self.api.devices[self.dev].location()['latitude'])
+            longitude = str(self.api.devices[self.dev].location()['longitude'])
             if win32api.MessageBox(0, 'Important\nPress CTRL+W in order to exit further', 'PyCloud - Message',
                                    0x00000001L + 0x00000040L + 0x00020000L) == 1:
                 self.locate_phone = Broswer.Locate(latitude, longitude)
@@ -443,11 +518,13 @@ class LocateThread(QThread):
 class DeleteThread(QThread):
     alert = QtCore.pyqtSignal(object)
 
-    def __init__(self, username='none', password='none', list=[]):
+    def __init__(self, api, dev, username='none', password='none', list=[]):
         QThread.__init__(self)
         self.username = username
         self.password = password
         self.list = list
+        self.dev = dev
+        self.api = api
         self.delete_selected = {}
         self.flag = False
         self.warning = False
@@ -460,9 +537,9 @@ class DeleteThread(QThread):
             for i in self.list:
                 self.delete_selected[i.split('\\')[-1].strip("'")] = i
             self.api = PyiCloudService(str(self.username), str(self.password))  # For checking the Internet Connection
-            self.folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
+            self.folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
             self.path = os.getcwd()  # script directory
-            self.load = PhotosThread(self.api)
+            self.load = PhotosThread(self.dev, self.api)
             self.load.loading_data(self.folder)
             self.count = self.load.count
             for photo in self.delete_selected.keys():
@@ -515,12 +592,16 @@ class DeleteThread(QThread):
             win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
                                 0x00000000L + 0x00000010L + 0x00020000L)
             self.alert.emit('error')
-        except:
+        except exceptions.PyiCloudServiceNotActivatedErrror:
+            win32api.MessageBox(0, 'iCloud Photo Library not enabled', 'PyCloud - Message',
+                                0x00000000L + 0x00000010L + 0x00020000L)
+            self.alert.emit('error')
+        """except:
             win32api.MessageBox(0, 'You messed up with your directory.\nNow you can manually delete photos\n'
                                    'or to fix this delete the whole directory(with your username) and download your'
                                    ' Photos again.', 'PyCloud - Message',
                                 0x00000000L + 0x00000010L + 0x00020000L)
-            self.alert.emit('error')
+            self.alert.emit('error')"""
 
     def saving_data(self, api, folder):
         try:
@@ -556,8 +637,9 @@ class DeleteThread(QThread):
 class PhotosThread(QThread):
     alert = QtCore.pyqtSignal(object)
 
-    def __init__(self, api):
+    def __init__(self, dev, api):
         QThread.__init__(self)
+        self.dev = dev
         self.api = api
         self.list_year, self.list_month, self.list_images, self.count = [], [], [], 0
         self.message = self.time = self.today = self.phone = ''
@@ -618,8 +700,8 @@ class PhotosThread(QThread):
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
 
     def saving_data(self, api, folder):
-        self.phone = 'Phone: ' + str(api.devices[0]).split(':')[0] + '\n' + 'User:' + \
-                     str(api.devices[0]).split(':')[1]
+        self.phone = 'Phone: ' + str(api.devices[self.dev]).split(':')[0] + '\n' + 'User:' + \
+                     str(api.devices[self.dev]).split(':')[1]
         self.today = list(str(datetime.date.today()).split('-'))  # gets today's date
         self.time = list(str(datetime.datetime.now().time()).split(':'))  # gets current time
         self.time = self.time[0] + ':' + self.time[1]
@@ -639,7 +721,7 @@ class PhotosThread(QThread):
     def download(self):
         try:
             self.message = ''
-            folder = str(self.api.iphone).split(":")[1].strip()  # For checking the Internet Connection
+            folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
             self.loading_data(folder)
             self.download_initiate(self.api, folder)
             self.saving_data(self.api, folder)
@@ -648,6 +730,9 @@ class PhotosThread(QThread):
                                 0x00000000L + 0x00000010L + 0x00020000L)
             self.result = 'No Internet'
             self.alert.emit(self.result)
+        except exceptions.PyiCloudServiceNotActivatedErrror:
+            win32api.MessageBox(0, 'iCloud Photo Library not enabled', 'PyCloud - Message',
+                                0x00000000L + 0x00000010L + 0x00020000L)
 
     def run(self):
         self.download()
