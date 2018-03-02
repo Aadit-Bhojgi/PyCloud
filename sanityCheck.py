@@ -1,5 +1,4 @@
 import os
-import inspect
 import pickle
 import datetime
 import calendar
@@ -9,7 +8,7 @@ from collections import OrderedDict
 try:
     class Sanity:
         def __init__(self, folder):
-            self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
+            self.path = os.getcwd()  # script directory
             self.folder = folder
             self.list_images, self.list_year, self.list_month, self.count = [], [], [], 0
             self.files, self.folders, self.new_month, self.new_year, self.dir = [], [], [], [], OrderedDict()
@@ -28,8 +27,9 @@ try:
                     self.count = pickle.load(f)
                     f.close()
             except IOError:
-                self.folder = self.folder + '/AppData'
-                os.makedirs(os.path.join(self.path, self.folder))
+                if not os.path.exists(self.folder + '/AppData'):
+                    self.folder = self.folder + '/AppData'
+                    os.makedirs(os.path.join(self.path, self.folder))
                 return
 
             for directory, dirname, filename in os.walk(self.path + '/' + self.folder + '/Photos'):
