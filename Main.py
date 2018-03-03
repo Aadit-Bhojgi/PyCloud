@@ -303,8 +303,8 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
             self.sanity = sanityCheck.Sanity(self.name)
             try:
                 self.sanity.check()
-            except Exception:
-                message_alert("Some problem occurred.\nPlease try again.\n(Try deleteing the folder(with your device's"
+            except:
+                message_alert("Some problem occurred.\nPlease try again.\n(Try deleting the folder(with your device's"
                               " name)", 'info')
             else:
                 self.show_result.show()
@@ -323,9 +323,9 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
                 self.sanity = sanityCheck.Sanity(self.name)
                 try:
                     self.sanity.check()
-                except Exception:
+                except:
                     message_alert(
-                        "Some problem occurred.\nPlease try again.\nTry deleteing the folder(with your device's"
+                        "Some problem occurred.\nPlease try again.\nTry deleting the folder(with your device's"
                         " name)", 'info')
                 else:
                     folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
