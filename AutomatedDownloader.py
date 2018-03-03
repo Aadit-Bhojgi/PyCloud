@@ -70,7 +70,11 @@ class Cmd:
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
             return error
         self.sanity = sanityCheck.Sanity(user_name)
-        self.sanity.check()
+        try:
+            self.sanity.check()
+        except:
+            win32api.MessageBox(0, "Some problem occurred.\nPlease try again.\nTry deleting the folder(with your "
+                                   "device's name)", 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
 
         # Reading input data
         try:
