@@ -25,16 +25,14 @@ def message_alert(data, alert):
     msg.setWindowIcon(QtGui.QIcon(":/Images/Graphics/Icon/PyCloud-icon.png"))
     msg.setWindowTitle('PyCloud - Message')
     msg.setText(data)
+    msg.addButton(QtGui.QMessageBox.Ok)
     if alert == 'exit':
         msg.setIcon(QtGui.QMessageBox.Warning)
-        msg.addButton(QtGui.QMessageBox.Ok)
         msg.addButton(QtGui.QMessageBox.Cancel)
     elif alert == 'info':
         msg.setIcon(QtGui.QMessageBox.Information)
-        msg.addButton(QtGui.QMessageBox.Ok)
     elif alert == 'action':
         msg.setIcon(QtGui.QMessageBox.Information)
-        msg.addButton(QtGui.QMessageBox.Ok)
         msg.addButton(QtGui.QMessageBox.Cancel)
     msg.setDefaultButton(QtGui.QMessageBox.Ok)
     result = msg.exec_()
@@ -303,13 +301,18 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
     def download_photos(self):
         if self.is_unique():
             self.sanity = sanityCheck.Sanity(self.name)
-            self.sanity.check()
-            self.show_result.show()
-            self.move_labels('download')
-            self.show_result.setText('Downloading Photos Please Wait.')
-            self.thread_download = PhotosThread(self.dev, self.api)
-            self.thread_download.alert.connect(self.photo_result)
-            self.thread_download.start()
+            try:
+                self.sanity.check()
+            except Exception:
+                message_alert("Some problem occurred.\nPlease try again.\n(Try deleteing the folder(with your device's"
+                              " name)", 'info')
+            else:
+                self.show_result.show()
+                self.move_labels('download')
+                self.show_result.setText('Downloading Photos Please Wait.')
+                self.thread_download = PhotosThread(self.dev, self.api)
+                self.thread_download.alert.connect(self.photo_result)
+                self.thread_download.start()
 
     def stop_download(self):
         self.thread_download.flag = False
@@ -318,26 +321,32 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
         try:
             if self.is_unique():
                 self.sanity = sanityCheck.Sanity(self.name)
-                self.sanity.check()
-                folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
-                path = os.getcwd()  # script directory
-                filter = "Photos and Videos (*.HEIC *.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
-                selected = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, "Select Photos",
-                                                                       path + '/' + folder + '/Photos',
-                                                                       filter)
-                delete_selected = []
-                for i in range(0, len(selected[0])):
-                    delete_selected.append(str(selected[0][i]))
-                if len(delete_selected) > 0:
-                    result = message_alert('Selected file(s) will be deleted\nDo you want to Continue?', 'exit')
-                    if result:
-                        self.show_result.show()
-                        self.move_labels('delete')
-                        self.show_result.setText('Deleting Photos Please Wait.')
-                        self.thread_delete = DeleteThread(self.api, self.dev, self.username, self.password,
-                                                          delete_selected)
-                        self.thread_delete.alert.connect(self.photo_result)
-                        self.thread_delete.start()
+                try:
+                    self.sanity.check()
+                except Exception:
+                    message_alert(
+                        "Some problem occurred.\nPlease try again.\nTry deleteing the folder(with your device's"
+                        " name)", 'info')
+                else:
+                    folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
+                    path = os.getcwd()  # script directory
+                    filter = "Photos and Videos (*.HEIC *.JPG *.PNG *.MOV *.mp4 *gif);;All Files (*)"
+                    selected = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, "Select Photos",
+                                                                           path + '/' + folder + '/Photos',
+                                                                           filter)
+                    delete_selected = []
+                    for i in range(0, len(selected[0])):
+                        delete_selected.append(str(selected[0][i]))
+                    if len(delete_selected) > 0:
+                        result = message_alert('Selected file(s) will be deleted\nDo you want to Continue?', 'exit')
+                        if result:
+                            self.show_result.show()
+                            self.move_labels('delete')
+                            self.show_result.setText('Deleting Photos Please Wait.')
+                            self.thread_delete = DeleteThread(self.api, self.dev, self.username, self.password,
+                                                              delete_selected)
+                            self.thread_delete.alert.connect(self.photo_result)
+                            self.thread_delete.start()
         except ConnectionError, exceptions.PyiCloudAPIResponseError:
             win32api.MessageBox(0, 'Internet is not working.\nPlease try again.', 'PyCloud - Message',
                                 0x00000000L + 0x00000010L + 0x00020000L)
