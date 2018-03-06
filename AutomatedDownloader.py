@@ -85,9 +85,10 @@ class Cmd:
                 self.count = pickle.load(f)
                 f.close()
         except IOError:
-            folder = user_name + '/AppData'
-            os.makedirs(os.path.join(self.path, folder))
-
+            if not os.path.exists(user_name + '/AppData'):
+                folder = user_name + '/AppData'
+                os.makedirs(os.path.join(self.path, folder))
+            return
         # Downloading All Photos from user's iCloud account.
         for photo in api.photos.all:
             if photo.filename not in self.list_images:
