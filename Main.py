@@ -51,6 +51,7 @@ class Auth2f(QtGui.QWidget, Auth2f.Ui_Verify):
         super(self.__class__, self).__init__()
         self.setupUi(self)
 
+
 class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -117,12 +118,10 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
         self.devic = self.device.comboBox.currentIndex()-1
         self.device.comboBox.setCurrentIndex(0)
         self.device.hide()
-        self.auth2f.hide()
         self.api = self.result[0]
         self.login = PyLogin(self.api, self.devic)
-        form.hide()
-        self.login.setWindowModality(QtCore.Qt.ApplicationModal)
         self.login.show()
+        form.hide()
 
     def verify_code(self):
         self.auth2f.warning_send.hide()
@@ -133,6 +132,7 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
             self.auth2f.warning_verify.show()
 
     def Choose_Device(self):
+        self.auth2f.hide()
         dev = ''
         self.device.comboBox.addItem('Devices')
         self.device.comboBox.setMaxCount(len(list(self.result[1])) + 1)
@@ -183,7 +183,6 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
     def __init__(self, api, dev):
         super(self.__class__, self).__init__()
         self.setupUi(self)
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.show_result.hide()
         self.doc = QtGui.QTextDocument()
         self.api = api
