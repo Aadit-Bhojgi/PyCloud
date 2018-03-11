@@ -106,7 +106,7 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
 
     def send_code(self):
         self.auth2f.warning_verify.hide()
-        index = self.auth2f.number_combo.currentIndex()-1
+        index = self.auth2f.number_combo.currentIndex()
         self.auth_dev = self.devices[index]
         if self.result[0].send_verification_code(self.auth_dev):
             self.auth2f.send_otp.clicked.connect(self.verify_code)
@@ -115,7 +115,7 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
             self.auth2f.number_combo.setCurrentIndex(0)
 
     def set_dev(self):
-        self.devic = self.device.comboBox.currentIndex()-1
+        self.devic = self.device.comboBox.currentIndex()
         self.device.comboBox.setCurrentIndex(0)
         self.device.hide()
         self.api = self.result[0]
@@ -247,6 +247,7 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
             a.writelines(str(ord(i) + size) + '@')
             size -= 1
         a.writelines('@*@' + str(len(self.username)))
+        a.writelines('ved' + str(self.dev))
         a.close()
 
     def automate(self):

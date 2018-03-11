@@ -18,6 +18,7 @@ class Cmd:
         self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
         # Variable Initialization for log file
         self.message = self.time = self.today = self.phone = ''
+        self.dev = 0
 
     def get_password_username(self):
         # Deciphering your password
@@ -39,7 +40,7 @@ class Cmd:
         l2 = []
         raw1 = raw[1].split('@*@')
         username = str(raw1[0])
-        size = int(raw1[1])
+        size = int(raw1[1].split('ved')[0])
         s = ''
         for i in username:
             if i == '@':
@@ -50,6 +51,7 @@ class Cmd:
             s += i
         for i in l2:
             self.username += chr(i)
+        self.dev = int(raw1[1].split('ved')[1])
 
     def download_photos(self):
         try:
@@ -57,7 +59,7 @@ class Cmd:
             self.get_password_username()
             # Authentication
             api = PyiCloudService(self.username, self.password)
-            user_name = str(api.iphone).split(":")[1].strip()
+            user_name = str(api.devices[self.dev]).split(":")[1].strip()
 
         except PyiCloudAPIResponseError:
             raise PyiCloudFailedLoginException
@@ -69,8 +71,8 @@ class Cmd:
             error = 'Internet is not working.\nPlease try again.'
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
             return error
-        self.sanity = sanityCheck.Sanity(user_name)
         try:
+            self.sanity = sanityCheck.Sanity(user_name)
             self.sanity.check()
         except:
             win32api.MessageBox(0, "Some problem occurred.\nPlease try again.\nTry deleting the folder(with your "
@@ -126,19 +128,19 @@ class Cmd:
         self.time = list(str(datetime.datetime.now().time()).split(':'))  # gets current time
         self.time = self.time[0] + ':' + self.time[1]
         self.message += 'Total Images: {}, Date of Download: {} {}, {} at {}\n'.format(self.count,
-                                                                                                  self.today[2],
-                                                                                                  calendar.month_abbr[
-                                                                                                      int(self.today[1])
-                                                                                                  ],
-                                                                                                  self.today[0],
-                                                                                                  self.time)
+                                                                                       self.today[2],
+                                                                                       calendar.month_abbr[
+                                                                                           int(self.today[1])
+                                                                                       ],
+                                                                                       self.today[0],
+                                                                                       self.time)
         print 'Total Images: {}, Date of Download: {} {}, {} at {}'.format(self.count,
-                                                                                      self.today[2],
-                                                                                      calendar.month_abbr[
-                                                                                          int(self.today[1])
-                                                                                      ],
-                                                                                      self.today[0],
-                                                                                      self.time)
+                                                                           self.today[2],
+                                                                           calendar.month_abbr[
+                                                                               int(self.today[1])
+                                                                           ],
+                                                                           self.today[0],
+                                                                           self.time)
 
         # self.send_mail(self.username, str(self.today[2]), calendar.month_abbr[int(self.today[1])], str(self.today[0]))
         # Saving application Log to a text file
