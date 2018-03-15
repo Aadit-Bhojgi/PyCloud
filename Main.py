@@ -88,17 +88,14 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
                     self.auth2f.otp.clear()
                     self.auth2f.warning_send.hide()
                     self.auth2f.warning_verify.hide()
-                    self.auth2f.number_combo.setCurrentIndex(0)
+                    self.auth2f.number_combo.clear()
                     self.auth2f.setWindowModality(QtCore.Qt.ApplicationModal)
                     self.auth2f.show()
                     self.devices = self.result[0].trusted_devices
-                    self.auth2f.number_combo.addItem('Number')
-                    self.auth2f.number_combo.setMaxCount(len(self.devices) + 1)
-                    self.auth2f.number_combo.model().item(0).setEnabled(False)
                     for device in enumerate(self.devices):
                         dev = str(device[1]['phoneNumber'])
                         self.auth2f.number_combo.addItem(dev)
-                    self.auth2f.number_combo.currentIndexChanged.connect(self.send_code)
+                    self.auth2f.number_combo.activated.connect(self.send_code)
                 else:
                     self.Choose_Device()
             else:
@@ -112,11 +109,9 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
             self.auth2f.send_otp.clicked.connect(self.verify_code)
         else:
             self.auth2f.warning_send.show()
-            self.auth2f.number_combo.setCurrentIndex(0)
 
     def set_dev(self):
         self.devic = self.device.comboBox.currentIndex()
-        self.device.comboBox.setCurrentIndex(0)
         self.device.hide()
         self.api = self.result[0]
         self.login = PyLogin(self.api, self.devic)
@@ -134,15 +129,13 @@ class PyMain(QtGui.QWidget, GUI.Ui_Pycloud):
     def Choose_Device(self):
         self.auth2f.hide()
         dev = ''
-        self.device.comboBox.addItem('Devices')
-        self.device.comboBox.setMaxCount(len(list(self.result[1])) + 1)
-        self.device.comboBox.model().item(0).setEnabled(False)
+        self.device.comboBox.clear()
         for i in range(0, len(list(self.result[1]))):
             dev = str(self.result[1][i])
             self.device.comboBox.addItem(dev)
         self.device.setWindowModality(QtCore.Qt.ApplicationModal)
         self.device.show()
-        self.device.comboBox.currentIndexChanged.connect(self.set_dev)
+        self.device.comboBox.activated.connect(self.set_dev)
 
     def closeEvent(self, event):
         result = message_alert('Do you want to Exit?', 'exit')
@@ -412,6 +405,8 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
 
     def final_play_lost(self, alert):
         message_alert(alert, 'info')
+        self.lost_message.clear()
+        self.lost_phonee.clear()
 
     def locate(self):
         if self.is_unique():
