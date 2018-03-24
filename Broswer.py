@@ -32,10 +32,15 @@ class Locate:
     def locate_phone(self):
         chrome_options = Options()
         chrome_options.add_argument("--kiosk")
-        browser = webdriver.Chrome('chrome_driver.exe', chrome_options=chrome_options)
+        browser = webdriver.Chrome('chromedriver.exe', chrome_options=chrome_options)
         browser.get('https://www.google.co.in')
+        print self.url
         WebDriverWait(browser, 60).until(
             expected_conditions.presence_of_element_located((By.NAME, "q"))).send_keys(self.url)
         WebDriverWait(browser, 60).until(
             expected_conditions.presence_of_element_located((By.NAME, "btnK"))).send_keys(keys.Keys.ENTER)
         WebDriverWait(browser, True)
+
+
+if __name__ == "__main__":
+    pass
