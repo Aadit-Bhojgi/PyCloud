@@ -2,12 +2,13 @@ import os
 import pickle
 import datetime
 import calendar
+import inspect
 from collections import OrderedDict
 
 
 class Sanity:
     def __init__(self, folder):
-        self.path = os.getcwd()  # script directory
+        self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
         self.folder = folder
         self.list_images, self.list_year, self.list_month, self.count = [], [], [], 0
         self.files, self.folders, self.new_month, self.new_year, self.dir = [], [], [], [], OrderedDict()

@@ -4,6 +4,7 @@ import sys
 import os
 import win32api
 import Auth
+import inspect
 import Auth2f
 import devices
 import sanityCheck
@@ -219,7 +220,7 @@ class PyLogin(QtGui.QWidget, LogIn.Ui_PyLogin):
         self.show_result.setReadOnly(True)
         self.automation.setAutoDefault(True)
         self.automation.clicked.connect(self.automate)
-        self.path = os.getcwd()  # script directory
+        self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
         self.name = user_name.strip()
         self.cancel_download.hide()
         self.cancel_deletion.hide()
@@ -542,7 +543,7 @@ class DeleteThread(QThread):
                 self.delete_selected[i.split('\\')[-1].strip("'")] = i
             self.api = PyiCloudService(str(self.username), str(self.password))  # For checking the Internet Connection
             self.folder = str(self.api.devices[self.dev]).split(":")[1].strip()  # For checking the Internet Connection
-            self.path = os.getcwd()  # script directory
+            self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
             self.load = PhotosThread(self.dev, self.api)
             self.load.loading_data(self.folder)
             self.count = self.load.count
@@ -648,7 +649,7 @@ class PhotosThread(QThread):
         self.list_year, self.list_month, self.list_images, self.count = [], [], [], 0
         self.message = self.time = self.today = self.phone = ''
         # To check the Path of the script
-        self.path = os.getcwd()  # script directory
+        self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
         self.flag = True
 
     def loading_data(self, folder):
