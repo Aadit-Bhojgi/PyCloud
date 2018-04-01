@@ -647,7 +647,7 @@ class PhotosThread(QThread):
         self.dev = dev
         self.api = api
         self.list_year, self.list_month, self.list_images, self.count = [], [], [], 0
-        self.message = self.time = self.today = self.phone = ''
+        self.message = self.time = self.today = ''
         # To check the Path of the script
         self.path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))  # script directory
         self.flag = True
@@ -703,10 +703,12 @@ class PhotosThread(QThread):
         except ConnectionError:
             error = 'Internet is not working.\nPlease try again.'
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
+        except:
+            error = 'Some Problem occured.\nPlease try again.'
+            win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
+
 
     def saving_data(self, api, folder):
-        self.phone = 'Phone: ' + str(api.devices[self.dev]).split(':')[0] + '\n' + 'User:' + \
-                     str(api.devices[self.dev]).split(':')[1]
         self.today = list(str(datetime.date.today()).split('-'))  # gets today's date
         self.time = list(str(datetime.datetime.now().time()).split(':'))  # gets current time
         self.time = self.time[0] + ':' + self.time[1]
