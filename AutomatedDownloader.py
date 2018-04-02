@@ -6,7 +6,8 @@ import pickle
 import win32api
 
 from pyicloud import *
-from pyicloud.exceptions import PyiCloudAPIResponseError, PyiCloudFailedLoginException
+from pyicloud.exceptions import PyiCloudAPIResponseError, PyiCloudFailedLoginException,\
+    PyiCloudServiceNotActivatedErrror
 from requests.exceptions import ConnectionError
 
 import sanityCheck
@@ -72,15 +73,12 @@ class Cmd:
         except PyiCloudFailedLoginException:
             error = 'Invalid email/password combination.\nPlease try again.'
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
-            return error
         except ConnectionError:
             error = 'Internet is not working.\nPlease try again.'
             win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
-            return error
         except:
             win32api.MessageBox(0, "Some problem occurred.\nPlease try again.\nTry deleting the folder(with your "
                                    "device's name)", 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
-
         # Reading input data
         try:
             with open(self.path + '/' + self.user_name + '/AppData/AppData.dat', "rb") as f:
@@ -94,37 +92,43 @@ class Cmd:
                 folder = self.user_name + '/AppData'
                 os.makedirs(os.path.join(self.path, folder))
             return
-        # Downloading All Photos from user's iCloud account.
-        for photo in self.api.photos.all:
-            if photo.filename not in self.list_images:
-                download = photo.download()
-                info = str(photo.created).split()[0].split('-')
-                year = str(info[0])
-                month = calendar.month_name[int(info[1])]
-                if year not in self.list_year:
-                    os.makedirs(os.path.join(self.path + '/' + self.user_name + '/Photos', year))
-                    self.list_year.append(year)
-                if (month + '_' + year) not in self.list_month:
-                    os.makedirs(os.path.join(self.path + '/' + self.user_name + '/Photos', year, month))
-                    self.list_month.append((month + '_' + year))
-                self.list_images.append(photo.filename)
-                with open(self.path + '/' + self.user_name + '/Photos/{}/{}/{}'.format(year, month, photo.filename),
-                          'wb+') as opened_file:
-                    opened_file.write(download.raw.read())
-                    opened_file.close()
-                self.message += '{} downloaded, Date of creation: {} {}, {}\n'.format(photo.filename, info[2],
-                                                                                      calendar.month_abbr[int(info[1])],
-                                                                                      info[0])
-                print '{} downloaded, Date of creation: {} {}, {}'.format(photo.filename, info[2],
-                                                                          calendar.month_abbr[int(info[1])],
-                                                                          info[0])
-                self.count += 1
-                with open(self.path + '/' + self.user_name + '/AppData/AppData.dat', "wb") as f:
-                    pickle.dump(self.list_year, f)
-                    pickle.dump(self.list_month, f)
-                    pickle.dump(self.list_images, f)
-                    pickle.dump(self.count, f)
-                    f.close()
+        try:
+            # Downloading All Photos from user's iCloud account.
+            for photo in self.api.photos.all:
+                if photo.filename not in self.list_images:
+                    download = photo.download()
+                    info = str(photo.created).split()[0].split('-')
+                    year = str(info[0])
+                    month = calendar.month_name[int(info[1])]
+                    if year not in self.list_year:
+                        os.makedirs(os.path.join(self.path + '/' + self.user_name + '/Photos', year))
+                        self.list_year.append(year)
+                    if (month + '_' + year) not in self.list_month:
+                        os.makedirs(os.path.join(self.path + '/' + self.user_name + '/Photos', year, month))
+                        self.list_month.append((month + '_' + year))
+                    self.list_images.append(photo.filename)
+                    with open(self.path + '/' + self.user_name + '/Photos/{}/{}/{}'.format(year, month, photo.filename),
+                              'wb+') as opened_file:
+                        opened_file.write(download.raw.read())
+                        opened_file.close()
+                    self.message += '{} downloaded, Date of creation: {} {}, {}\n'.format(photo.filename, info[2],
+                                                                                          calendar.month_abbr[int(info[1])],
+                                                                                          info[0])
+                    print '{} downloaded, Date of creation: {} {}, {}'.format(photo.filename, info[2],
+                                                                              calendar.month_abbr[int(info[1])],
+                                                                              info[0])
+                    self.count += 1
+                    with open(self.path + '/' + self.user_name + '/AppData/AppData.dat', "wb") as f:
+                        pickle.dump(self.list_year, f)
+                        pickle.dump(self.list_month, f)
+                        pickle.dump(self.list_images, f)
+                        pickle.dump(self.count, f)
+                        f.close()
+
+        except PyiCloudServiceNotActivatedErrror:
+            error = 'Please log into https://icloud.com/ to\nmanually finish setting up your iCloud service' \
+                    '\n(AUTHENTICATION_FAILED)'
+            win32api.MessageBox(0, error, 'PyCloud - Message', 0x00000000L + 0x00000010L + 0x00020000L)
 
         self.phone = 'Device: ' + str(self.api.devices[self.dev]).split(':')[0] + '\n' + \
                      'User:' + str(self.api.devices[self.dev]).split(':')[1]
